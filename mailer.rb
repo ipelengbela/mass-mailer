@@ -17,6 +17,8 @@ Mail.defaults do
   delivery_method :smtp, options
 end
 
+# EMAIL OPTIONS
+
 delay_between_email = 5 # seconds
 email_from          = "Lorem Ipsum <lorem@ipsum.com>"
 email_subject       = "Lorem Ipsum?"
@@ -29,6 +31,8 @@ voluptate alias doloremque voluptatum veniam voluptates aspernatur officia harum
 Thanks,
 Lorem
 EMAIL_BODY
+
+# EMAIL OPTIONS
 
 File.readlines("email_list.txt").each do |email_to|
   mail = Mail.new do
