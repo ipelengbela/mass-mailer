@@ -2,14 +2,14 @@
 Easy and convenient tool for sending mass mail to your clients, using Gmail.
 
 #### Getting started
-1. Create a new file called `.env` and add your Gmail login credentials
+Create a new file called `.env` and add your Gmail login credentials
 
 ```
 Line 1: GMAIL_USERNAME=myusernamehere
 Line 2: GMAIL_PASSWORD=mypasswordhere
 ```
 
-2. Add your emails to `email_list.txt`
+Add your emails to `email_list.txt`
 
 ```
 Line 1: foo@bar.com
@@ -17,7 +17,7 @@ Line 2: peter@parker.com
 Line 3: sponge@bob.com
 ```
 
-3. Format your email from `mailer.rb`
+Format your email from `mailer.rb`
 
 ```
 delay_between_email = 5 # seconds
@@ -34,4 +34,4 @@ Lorem
 EMAIL_BODY
 ```
 
-3. When you're finish, run the mailer from the Terminal, or Command-line using `ruby mailer.rb`.
+When you're finish, run the mailer from the Terminal, or Command-line using `ruby mailer.rb`.
