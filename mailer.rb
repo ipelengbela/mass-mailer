@@ -34,16 +34,28 @@ EMAIL_BODY
 
 # EMAIL OPTIONS
 
-File.readlines("email_list.txt").each do |email_to|
-  mail = Mail.new do
-    content_type "text/plain; charset=UTF-8; format=flowed"
-    from         email_from
-    to           email_to
-    subject      email_subject
-    body         email_body
+def file_include? filename, str
+  File.open(filename, "r") do |file|
+    file.each do |line|
+      return true if line.include?(str)
+    end
   end
+  false
+end
 
-  mail.deliver
-  puts "Sent email to: #{email_to}"
-  sleep delay_between_email
+File.readlines("email_list.txt").each do |email_to|
+  if !file_include? "email_used.txt", email_to
+    mail = Mail.new do
+      content_type "text/plain; charset=UTF-8; format=flowed"
+      from         email_from
+      to           email_to
+      subject      email_subject
+      body         email_body
+    end
+
+    mail.deliver
+    File.open("email_used.txt", "a+") {|f| f.puts(email_to) }
+    puts "Sent email to: #{email_to}"
+    sleep delay_between_email
+  end
 end
