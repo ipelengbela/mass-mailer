@@ -3,26 +3,40 @@ require "mail"
 
 Dotenv.load
 
-options = {
-  :address              => "smtp.gmail.com",
-  :port                 => 587,
-  :user_name            => ENV["GMAIL_USERNAME"],
-  :password             => ENV["GMAIL_PASSWORD"],
-  :authentication       => "plain",
-  :enable_starttls_auto => true,
-  :enable_ssl           => true
-}
+class Mailer
+  def initialize opts
+    @username = opts[:username]
+    @password = opts[:password]
+  end
 
-Mail.defaults do
-  delivery_method :smtp, options
-end
+  def file_include? filename, str
+    File.open(filename, "r") do |file|
+      file.each do |line|
+        return true if line.include?(str)
+      end
+    end
+    false
+  end
 
-# EMAIL OPTIONS
+  def deliver
+    options = {
+      :address              => "smtp.gmail.com",
+      :port                 => 587,
+      :user_name            => @username,
+      :password             => @password,
+      :authentication       => "plain",
+      :enable_starttls_auto => true,
+      :enable_ssl           => true
+    }
 
-delay_between_email = 5 # seconds
-email_from          = "Lorem Ipsum <lorem@ipsum.com>"
-email_subject       = "Lorem Ipsum?"
-email_body          = <<-EMAIL_BODY
+    Mail.defaults do
+      delivery_method :smtp, options
+    end
+
+    delay_between_email = 5 # seconds
+    email_from          = "Lorem Ipsum <lorem@ipsum.com>"
+    email_subject       = "Lorem Ipsum?"
+    email_body          = <<-EMAIL_BODY
 Dear Lorem,
 
 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum ullam,
@@ -32,30 +46,24 @@ Thanks,
 Lorem
 EMAIL_BODY
 
-# EMAIL OPTIONS
+    File.readlines("email_list.txt").each do |email_to|
+      if !file_include? "email_used.txt", email_to
+        mail = Mail.new do
+          content_type "text/plain; charset=UTF-8; format=flowed"
+          from         email_from
+          to           email_to
+          subject      email_subject
+          body         email_body
+        end
 
-def file_include? filename, str
-  File.open(filename, "r") do |file|
-    file.each do |line|
-      return true if line.include?(str)
+        mail.deliver
+        File.open("email_used.txt", "a+") {|f| f.puts(email_to) }
+        puts "Sent email to: #{email_to}"
+        sleep delay_between_email
+      end
     end
   end
-  false
 end
 
-File.readlines("email_list.txt").each do |email_to|
-  if !file_include? "email_used.txt", email_to
-    mail = Mail.new do
-      content_type "text/plain; charset=UTF-8; format=flowed"
-      from         email_from
-      to           email_to
-      subject      email_subject
-      body         email_body
-    end
-
-    mail.deliver
-    File.open("email_used.txt", "a+") {|f| f.puts(email_to) }
-    puts "Sent email to: #{email_to}"
-    sleep delay_between_email
-  end
-end
+mail = Mailer.new({username: ENV['GMAIL_USERNAME'], password: ENV['GMAIL_PASSWORD']})
+mail.deliver
