@@ -7,6 +7,11 @@ class Mailer
   def initialize opts
     @username = opts[:username]
     @password = opts[:password]
+    @email_body = opts[:email_body]
+    @email_from = opts[:email_from]
+    @email_subject = opts[:email_subject]
+    @delay_between_email = opts[:delay_between_email] || 2
+    @content_type = opts[:content_type]
   end
 
   def file_include? filename, str
@@ -33,10 +38,25 @@ class Mailer
       delivery_method :smtp, options
     end
 
-    delay_between_email = 5 # seconds
-    email_from          = "Lorem Ipsum <lorem@ipsum.com>"
-    email_subject       = "Lorem Ipsum?"
-    email_body          = <<-EMAIL_BODY
+    File.readlines("email_list.txt").each do |email_to|
+      if !file_include? "email_used.txt", email_to
+        mail = Mail.new do
+          to           email_to
+          content_type @content_type || "text/plain; charset=UTF-8; format=flowed"
+          from         @email_from
+          subject      @email_subject
+          body         @email_body
+        end
+        mail.deliver
+        File.open("email_used.txt", "a+") { |f| f.puts(email_to) }
+        puts "Sent email to: #{email_to}"
+        sleep @delay_between_email
+      end
+    end
+  end
+end
+
+email_body = <<-EMAIL_BODY
 Dear Lorem,
 
 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum ullam,
@@ -46,24 +66,12 @@ Thanks,
 Lorem
 EMAIL_BODY
 
-    File.readlines("email_list.txt").each do |email_to|
-      if !file_include? "email_used.txt", email_to
-        mail = Mail.new do
-          content_type "text/plain; charset=UTF-8; format=flowed"
-          from         email_from
-          to           email_to
-          subject      email_subject
-          body         email_body
-        end
-
-        mail.deliver
-        File.open("email_used.txt", "a+") {|f| f.puts(email_to) }
-        puts "Sent email to: #{email_to}"
-        sleep delay_between_email
-      end
-    end
-  end
-end
-
-mail = Mailer.new({username: ENV['GMAIL_USERNAME'], password: ENV['GMAIL_PASSWORD']})
+mail = Mailer.new({
+  username: ENV['GMAIL_USERNAME'],
+  password: ENV['GMAIL_PASSWORD'],
+  email_from: 'Lorem Ipsum <lorem@ipsum.com>',
+  email_subject: 'Lorem Ipsum',
+  email_body: email_body,
+  delay_between_email: 5
+})
 mail.deliver
